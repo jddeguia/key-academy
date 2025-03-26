@@ -1,12 +1,12 @@
 version: 2
 
 sources:
-  - name: raw_orders_data
+  - name: raw_airbyte_billing_orders
     database: intrepid-craft-450709-f9
     schema: raw_test_orders
     tables:
       - name: test_orders_raw__stream_billing_orders
-  - name: raw_billing_data
+  - name: raw_test_billing_orders
     database: intrepid-craft-450709-f9
     schema: raw_billing_orders
     tables:
