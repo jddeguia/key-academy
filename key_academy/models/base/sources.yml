@@ -1,13 +1,26 @@
 version: 2
 
 sources:
-  - name: raw_airbyte_billing_orders
+  - name: test_orders
     database: intrepid-craft-450709-f9
-    schema: raw_test_orders
+    schema: test_orders_copy
     tables:
-      - name: test_orders_raw__stream_billing_orders
-  - name: raw_test_billing_orders
-    database: intrepid-craft-450709-f9
-    schema: raw_billing_orders
-    tables:
+      - name: auth_accounts
+      - name: auth_invitations
+      - name: auth_users
+      - name: billing_discount_actions
+      - name: billing_discount_code_usages
+      - name: billing_discount_codes
+      - name: billing_licenses
+      - name: billing_order_history
       - name: billing_orders
+      - name: billing_products
+      - name: billing_user_cart
+      - name: elearingcontent_learn_elements
+      - name: elearingcontent_published_elements
+      - name: elearingcontent_unpublished_elements
+      - name: elearingcontent_video_subtitles
+      - name: email_personalized_email_templates
+      - name: files_file_description
+      - name: instructor_instructors
+
