@@ -25,7 +25,7 @@ WITH billing_orders_base AS (
     _ab_cdc_deleted_at AS ab_cdc_deleted_at,
     _ab_cdc_updated_at AS ab_cdc_updated_at,
     JSON_QUERY(allowedPaymentMethods, '$') AS allowed_payment_methods,
-    JSON_QUERY(selectedPaymentMethod, '$') AS selected_payment_method
+    JSON_QUERY(selectedPaymentMethod, '$') AS selected_payment_method,
   FROM {{ source('test_orders', 'billing_orders')}}
 ),
 
@@ -37,10 +37,13 @@ unnest_data AS (
     ab_cdc_updated_at,
     airbyte_raw_id,
     ab_cdc_cursor,
+    SAFE.JSON_VALUE(airbyte_meta, '$.changes') AS airbyte_changes, 
+    SAFE.JSON_VALUE(airbyte_meta, '$.sync_id') AS airbyte_sync_id,
     order_id,  
     id,
     created_at,
     billing_order_status,
+    cart,
     SAFE.JSON_VALUE(purchaser, '$.accountId') AS account_id,
     SAFE.JSON_VALUE(purchaser, '$.userId') AS user_id,
     SAFE.JSON_VALUE(customer_details, '$.city') AS customer_city,
@@ -79,8 +82,64 @@ unnest_data AS (
     SAFE.JSON_VALUE(deletion_info, '$.isDeleted') AS is_deleted,
     SAFE.JSON_VALUE(deletion_info, '$.kind') AS deletion_kind
   FROM billing_orders_base
+),
+
+unnest_cart_items AS (
+  SELECT 
+    unnest_data.* EXCEPT (cart),
+    ARRAY_TO_STRING(JSON_VALUE_ARRAY(cart, '$.discountCodeRefusals'), ', ') AS discount_code_refusals,
+
+    -- Items (Using UNNEST)
+    SAFE.JSON_VALUE(item, '$.amount') AS item_amount,
+    SAFE.JSON_VALUE(item, '$.kind') AS item_kind,
+    SAFE.JSON_VALUE(item, '$.productId') AS item_product_id,
+    SAFE.JSON_VALUE(item, '$.individualPrice.grossPrice') AS item_gross_price,
+    SAFE.JSON_VALUE(item, '$.individualPrice.netPrice') AS item_net_price,
+    SAFE.JSON_VALUE(item, '$.individualPrice.taxRatePercentage') AS item_tax_rate,
+    SAFE.JSON_VALUE(item, '$.totalPrice.grossPrice') AS item_total_gross_price,
+    SAFE.JSON_VALUE(item, '$.totalPrice.netPrice') AS item_total_net_price,
+    SAFE.JSON_VALUE(item, '$.totalPrice.taxRatePercentage') AS item_total_tax_rate,
+
+    -- Selection (Arrays)
+    ARRAY_TO_STRING(JSON_VALUE_ARRAY(cart, '$.selection.selectedDiscountCodes'), ', ') AS selected_discount_codes,
+    SAFE.JSON_VALUE(selected_product, '$.amount') AS selected_product_amount,
+    SAFE.JSON_VALUE(selected_product, '$.productId') AS selected_product_id,
+
+    -- Totals
+    SAFE.JSON_VALUE(cart, '$.totals.appliedDiscount.grossPrice') AS applied_discount_gross_price,
+    SAFE.JSON_VALUE(cart, '$.totals.appliedDiscount.netPrice') AS applied_discount_net_price,
+    SAFE.JSON_VALUE(cart, '$.totals.appliedDiscount.taxRatePercentage') AS applied_discount_tax_rate,
+    SAFE.JSON_VALUE(cart, '$.totals.appliedDiscountPercentage') AS applied_discount_percentage,
+    SAFE.JSON_VALUE(cart, '$.totals.includingAllDiscounts.grossPrice') AS including_all_discounts_gross_price,
+    SAFE.JSON_VALUE(cart, '$.totals.includingAllDiscounts.netPrice') AS including_all_discounts_net_price,
+    SAFE.JSON_VALUE(cart, '$.totals.includingAllDiscounts.taxRatePercentage') AS including_all_discounts_tax_rate,
+
+    -- Monthly Options
+    SAFE.JSON_VALUE(cart, '$.totals.monthlyOptions.downPayment.grossPrice') AS monthly_downpayment_gross_price,
+    SAFE.JSON_VALUE(cart, '$.totals.monthlyOptions.downPayment.netPrice') AS monthly_downpayment_net_price,
+    SAFE.JSON_VALUE(cart, '$.totals.monthlyOptions.downPayment.taxRatePercentage') AS monthly_downpayment_tax_rate,
+    SAFE.JSON_VALUE(cart, '$.totals.monthlyOptions.financedAmount.grossPrice') AS monthly_financed_amount_gross_price,
+    SAFE.JSON_VALUE(cart, '$.totals.monthlyOptions.financedAmount.netPrice') AS monthly_financed_amount_net_price,
+    SAFE.JSON_VALUE(cart, '$.totals.monthlyOptions.financedAmount.taxRatePercentage') AS monthly_financed_amount_tax_rate,
+    SAFE.JSON_VALUE(cart, '$.totals.monthlyOptions.monthlyRate.grossPrice') AS monthly_rate_gross_price,
+    SAFE.JSON_VALUE(cart, '$.totals.monthlyOptions.monthlyRate.netPrice') AS monthly_rate_net_price,
+    SAFE.JSON_VALUE(cart, '$.totals.monthlyOptions.monthlyRate.taxRatePercentage') AS monthly_rate_tax_rate,
+    SAFE.JSON_VALUE(cart, '$.totals.monthlyOptions.rateCount') AS monthly_rate_count,
+    SAFE.JSON_VALUE(cart, '$.totals.monthlyOptions.totalAmount.grossPrice') AS monthly_total_amount_gross_price,
+    SAFE.JSON_VALUE(cart, '$.totals.monthlyOptions.totalAmount.netPrice') AS monthly_total_amount_net_price,
+    SAFE.JSON_VALUE(cart, '$.totals.monthlyOptions.totalAmount.taxRatePercentage') AS monthly_total_amount_tax_rate,
+
+    -- Without Discounts
+    SAFE.JSON_VALUE(cart, '$.totals.withoutDiscounts.grossPrice') AS without_discounts_gross_price,
+    SAFE.JSON_VALUE(cart, '$.totals.withoutDiscounts.netPrice') AS without_discounts_net_price,
+    SAFE.JSON_VALUE(cart, '$.totals.withoutDiscounts.taxRatePercentage') AS without_discounts_tax_rate
+  
+  FROM unnest_data 
+  LEFT JOIN UNNEST(JSON_QUERY_ARRAY(cart, '$.items')) AS item
+  LEFT JOIN UNNEST(JSON_QUERY_ARRAY(cart, '$.selection.selectedProducts')) AS selected_product
+
 )
 
-SELECT * FROM unnest_data
+SELECT * FROM unnest_cart_items
 
 
