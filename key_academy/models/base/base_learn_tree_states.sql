@@ -12,6 +12,7 @@ WITH learn_tree_states_base AS (
         _airbyte_generation_id AS airbyte_generation_id,
         REPLACE(id, 'TreeState:', '') AS tree_state_id, 
         REPLACE(userId, 'User:', '') AS user_id, 
+        _id AS id,
         startedAt AS started_at,
         JSON_QUERY(definition, '$') AS definition,
         REPLACE(rootNodeId, 'Node:', '') AS root_node_id,
