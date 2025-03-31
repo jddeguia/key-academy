@@ -23,4 +23,13 @@ sources:
       - name: email_personalized_email_templates
       - name: files_file_description
       - name: instructor_instructors
+      - name: learn_content_submissions
+      - name: learn_tree_states
+      - name: learn_tree_unlocked_states
+      - name: level_definitions
+      - name: license_definitions
+      - name: report_reports
+      - name: trees_published_nodes
+      - name: tress_unpublished_nodes
+    
 
