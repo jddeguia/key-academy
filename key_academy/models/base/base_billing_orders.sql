@@ -44,8 +44,8 @@ unnest_data AS (
     created_at,
     billing_order_status,
     cart,
-    SAFE.JSON_VALUE(purchaser, '$.accountId') AS account_id,
-    SAFE.JSON_VALUE(purchaser, '$.userId') AS user_id,
+    REPLACE(SAFE.JSON_VALUE(purchaser, '$.accountId'), "Account:", '') AS account_id,
+    REPLACE(SAFE.JSON_VALUE(purchaser, '$.userId'), "User:", '') AS user_id,
     SAFE.JSON_VALUE(customer_details, '$.city') AS customer_city,
     SAFE.JSON_VALUE(customer_details, '$.country') AS customer_country,
     SAFE.JSON_VALUE(customer_details, '$.firstName') AS customer_first_name,
@@ -92,7 +92,7 @@ unnest_cart_items AS (
     -- Items (Using UNNEST)
     SAFE.JSON_VALUE(item, '$.amount') AS cart_item_amount,
     SAFE.JSON_VALUE(item, '$.kind') AS cart_item_kind,
-    SAFE.JSON_VALUE(item, '$.productId') AS cart_item_product_id,
+    REPLACE(SAFE.JSON_VALUE(item, '$.productId'), "Product:", '') AS cart_item_product_id,
     SAFE.JSON_VALUE(item, '$.individualPrice.grossPrice') AS cart_item_gross_price,
     SAFE.JSON_VALUE(item, '$.individualPrice.netPrice') AS cart_item_net_price,
     SAFE.JSON_VALUE(item, '$.individualPrice.taxRatePercentage') AS cart_item_tax_rate,
@@ -103,7 +103,7 @@ unnest_cart_items AS (
     -- Selection (Arrays)
     ARRAY_TO_STRING(JSON_VALUE_ARRAY(cart, '$.selection.selectedDiscountCodes'), ', ') AS cart_selected_discount_codes,
     SAFE.JSON_VALUE(selected_product, '$.amount') AS cart_selected_product_amount,
-    SAFE.JSON_VALUE(selected_product, '$.productId') AS cart_selected_product_id,
+    REPLACE(SAFE.JSON_VALUE(selected_product, '$.productId'), "Product:", '') AS cart_selected_product_id,
 
     -- Totals
     SAFE.JSON_VALUE(cart, '$.totals.appliedDiscount.grossPrice') AS cart_applied_discount_gross_price,
