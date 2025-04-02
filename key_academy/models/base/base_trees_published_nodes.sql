@@ -24,6 +24,7 @@ WITH trees_published_nodes_base AS (
     FROM {{ source('test_orders', 'trees_published_nodes')}}  
 ),
 
+-- not done
 unnest_data AS (
     SELECT
         airbyte_extracted_at,
@@ -32,8 +33,17 @@ unnest_data AS (
         ab_cdc_updated_at,      
         airbyte_raw_id,
         ab_cdc_cursor,
-        JSON_VALUE(instructor_ids, '$[0]') AS first_instructor,
-        JSON_VALUE(instructor_ids, '$[1]') AS second_instructor,
+        file_description_id,
+        id,
+        node_id,
+        SAFE.JSON_VALUE(attachments, '$.fileId') AS file_id,
+        SAFE.JSON_VALUE(attachments, '$.id') AS attachment_id,
+        SAFE.JSON_VALUE(attachments, '$.kind') AS file_kind,
+        SAFE.JSON_VALUE(attachments, '$.title') AS file_title,
+        SAFE.JSON_VALUE(versioning, '$.draftVersion') AS draft_version,
+        SAFE.JSON_VALUE(versioning, '$.releaseVersion') AS release_version,
+        REPLACE(JSON_VALUE(instructor_ids, '$[0]'), "Instructor:", "") AS first_instructor_id,
+        REPLACE(JSON_VALUE(instructor_ids, '$[1]'), "Instructor:", "") AS second_instructor_id,
         SAFE.JSON_VALUE(deletion_info, '$.isDeleted') AS is_deleted,
         SAFE.JSON_VALUE(deletion_info, '$.kind') AS deletion_kind
     FROM trees_published_nodes_base
