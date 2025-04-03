@@ -24,7 +24,7 @@ WITH trees_published_nodes_base AS (
     FROM {{ source('test_orders', 'trees_published_nodes')}}  
 ),
 
--- not done
+--not done
 unnest_data AS (
     SELECT
         airbyte_extracted_at,
@@ -45,7 +45,8 @@ unnest_data AS (
         REPLACE(JSON_VALUE(instructor_ids, '$[0]'), "Instructor:", "") AS first_instructor_id,
         REPLACE(JSON_VALUE(instructor_ids, '$[1]'), "Instructor:", "") AS second_instructor_id,
         SAFE.JSON_VALUE(deletion_info, '$.isDeleted') AS is_deleted,
-        SAFE.JSON_VALUE(deletion_info, '$.kind') AS deletion_kind
+        SAFE.JSON_VALUE(deletion_info, '$.kind') AS deletion_kind,
+        type_definition
     FROM trees_published_nodes_base
 )
 
