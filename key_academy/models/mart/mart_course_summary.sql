@@ -20,7 +20,7 @@
         root_node_id AS node_id,
         status
     FROM {{ ref('mart_learn_tree_states')}}  
-    WHERE status = 'Finished'
+    QUALIFY ROW_NUMBER() OVER (PARTITION BY user_id, node_id ORDER BY started_at ASC) = 1
  ),
 
  license_definitions AS (
