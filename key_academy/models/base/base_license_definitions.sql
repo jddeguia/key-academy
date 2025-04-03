@@ -33,7 +33,7 @@ unnest_data AS (
         id,
         license_definition_id,
         SAFE.JSON_VALUE(data, '$.excludedNodeIds') AS excluded_node_ids,
-        REPLACE(SAFE.JSON_VALUE(data, '$.includedNodeIds'), "Node:", '' ) AS node_id, 
+        REPLACE(SAFE.JSON_VALUE(SAFE.JSON_QUERY(data, '$.includedNodeIds[0]')),"Node:",'') AS node_id,
         SAFE.JSON_VALUE(data, '$.kind') AS license_kind,
         SAFE.JSON_VALUE(data, '$.name') AS license_name,
         SAFE.JSON_VALUE(deletion_info, '$.isDeleted') AS is_deleted, 
