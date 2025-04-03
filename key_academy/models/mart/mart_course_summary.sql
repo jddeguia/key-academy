@@ -30,6 +30,7 @@
         node_id,
         license_name AS title
     FROM {{ ref('mart_license_definitions')}}  
+    WHERE license_name NOT LIKE '%InApp%'
  ),
 
 course_summary AS (
@@ -41,10 +42,8 @@ course_summary AS (
         lu.course_purchased_at,
         ls.trial_started_at,
     FROM license_unlocked lu
-    FULL JOIN license_trial_started ls USING (user_id, node_id)
+    LEFT JOIN license_trial_started ls USING (user_id, node_id)
     LEFT JOIN license_definitions ld USING (node_id)
-    WHERE user_id IS NOT NULL
-    AND course_purchased_at IS NOT NULL
  )
 
 SELECT *
