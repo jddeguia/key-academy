@@ -64,6 +64,18 @@ unnest_data AS (
         SAFE.JSON_VALUE(release_coordinates, '$.next_content_node_id') AS next_content_node_id,
         SAFE.JSON_VALUE(release_coordinates, '$.previous_content_node_id') AS previous_content_node_id,
         REGEXP_REPLACE(REGEXP_REPLACE(TO_JSON_STRING(SAFE.JSON_VALUE(type_definition, '$.rewardTypeConfigs')), r'"Reward:([^"]+)"', r'\1'), r'[\[\]"]', '') AS reward_type_ids,
+        
+        SAFE.JSON_VALUE(structure_definition, '$.structureType') AS structure_type,
+        SAFE.JSON_VALUE(structure_definition, '$.title') AS title,
+
+        -- coordinates.*
+        SAFE.JSON_VALUE(structure_definition, '$.coordinates.nextSiblingRef') AS next_sibling_ref,
+        SAFE.JSON_VALUE(structure_definition, '$.coordinates.previousSiblingRef') AS previous_sibling_ref,
+
+        -- Flattening array values from coordinates
+        REGEXP_REPLACE(REGEXP_REPLACE(TO_JSON_STRING(SAFE.JSON_EXTRACT(structure_definition, '$.coordinates.indexPath')), r'[\[\]"]', ''), r',', '-') AS index_path, -- returns "0-2"
+        REGEXP_REPLACE(REGEXP_REPLACE(TO_JSON_STRING(SAFE.JSON_EXTRACT(structure_definition, '$.coordinates.pathRefs')), r'"Node:([^"]+)"', r'\1'), r'[\[\]"]', '') AS path_refs,
+
         SAFE.JSON_VALUE(deletion_info, '$.isDeleted') AS is_deleted,
         SAFE.JSON_VALUE(deletion_info, '$.kind') AS deletion_kind
     FROM trees_published_nodes_base
