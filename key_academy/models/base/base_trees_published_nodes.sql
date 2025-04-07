@@ -49,26 +49,23 @@ unnest_data AS (
         SAFE.JSON_VALUE(type_definition, '$.definitionType') AS definition_type,
         SAFE.JSON_VALUE(type_definition, '$.contentKind') AS content_kind,
         SAFE.JSON_VALUE(type_definition, '$.continueConfig.configType') AS continue_config_type,
-        SAFE.JSON_VALUE(type_definition, '$.continueConfig.id') AS continue_config_id,
+        REPLACE(SAFE.JSON_VALUE(type_definition, '$.continueConfig.id'), 'ContinueContentConfig:', '') AS continue_config_id,
         SAFE.JSON_VALUE(type_definition, '$.flowConfig.configType') AS flow_config_type,
-        SAFE.JSON_VALUE(type_definition, '$.flowConfig.id') AS flow_config_id,
+        REPLACE(SAFE.JSON_VALUE(type_definition, '$.flowConfig.id'), 'FlowELearningContentConfig:', '') AS flow_config_id,
         SAFE.JSON_VALUE(type_definition, '$.flowConfig.minNumTriesTillShowAnswer') AS min_tries_show_answer,
         SAFE.JSON_VALUE(type_definition, '$.passConfig.configType') AS pass_config_type,
-        SAFE.JSON_VALUE(type_definition, '$.passConfig.id') AS pass_config_id,
+        REPLACE(SAFE.JSON_VALUE(type_definition, '$.passConfig.id'), 'PassContentConfig:', '') AS pass_config_id,
         SAFE.JSON_VALUE(type_definition, '$.restartIfPassedConfig.configType') AS restart_if_passed_type,
-        SAFE.JSON_VALUE(type_definition, '$.restartIfPassedConfig.id') AS restart_if_passed_id,
-        SAFE.JSON_VALUE(type_definition, '$.rewardConfig.configType') AS reward_config_type,
-        SAFE.JSON_VALUE(type_definition, '$.rewardConfig.id') AS reward_config_id,
-        SAFE.JSON_QUERY(type_definition, '$.elementRefs') AS element_refs,
-        SAFE.JSON_QUERY(type_definition, '$.restartIfFailedConfig') AS restart_if_failed_config,
-        SAFE.JSON_QUERY(type_definition, '$.rewardTypeConfigs') AS reward_type_configs,
-        SAFE.JSON_QUERY(type_definition, '$.startConfig') AS start_config,
+        REPLACE(SAFE.JSON_VALUE(type_definition, '$.restartIfPassedConfig.id'), 'RestartIfPassedContentConfig:', '') AS restart_if_passed_id,
+        REGEXP_REPLACE(REGEXP_REPLACE(TO_JSON_STRING(SAFE.JSON_EXTRACT(type_definition, '$.rewardTypeConfigs')), r'\{"id":"Reward:[^"]+","kind":"([^"]+)"\}', r'\1'), r'[\[\]"]', '') AS reward_type_kinds,
+
+        REPLACE(SAFE.JSON_VALUE(type_definition, '$.rewardConfig.id'), 'RewardContentConfig:', '') AS reward_config_id,
+        REGEXP_REPLACE(REGEXP_REPLACE(TO_JSON_STRING(type_definition['elementRefs']),r'"Element:([^"]+)"',r'\1'),  r'[\[\]"]','') AS element_refs,        
         SAFE.JSON_VALUE(release_coordinates, '$.next_content_node_id') AS next_content_node_id,
         SAFE.JSON_VALUE(release_coordinates, '$.previous_content_node_id') AS previous_content_node_id,
         REGEXP_REPLACE(REGEXP_REPLACE(TO_JSON_STRING(SAFE.JSON_VALUE(type_definition, '$.rewardTypeConfigs')), r'"Reward:([^"]+)"', r'\1'), r'[\[\]"]', '') AS reward_type_ids,
         SAFE.JSON_VALUE(deletion_info, '$.isDeleted') AS is_deleted,
-        SAFE.JSON_VALUE(deletion_info, '$.kind') AS deletion_kind,
-        type_definition
+        SAFE.JSON_VALUE(deletion_info, '$.kind') AS deletion_kind
     FROM trees_published_nodes_base
 )
 
