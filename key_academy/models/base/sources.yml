@@ -24,6 +24,7 @@ sources:
       - name: files_file_description
       - name: instructor_instructors
       - name: learn_content_submissions
+      - name: learn_ihk_certificate_orders
       - name: learn_tree_states
       - name: learn_tree_unlocked_states
       - name: level_definitions
