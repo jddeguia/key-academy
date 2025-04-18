@@ -40,7 +40,6 @@ unnest_data AS (
         kind AS certificate_kind,
         SAFE.JSON_VALUE(initial_data, '$.canOrderAt') AS can_order_at,
         REPLACE(SAFE.JSON_VALUE(initial_data, '$.recipientId'), 'User:', '') AS recipient_id,
-        SAFE.JSON_VALUE(initial_data, '$.isWithHonors') AS is_with_honors,
         ROUND(CAST(SAFE.JSON_VALUE(initial_data, '$.performanceInPercent') AS FLOAT64), 2) AS performance_in_percent,
         REPLACE(SAFE.JSON_VALUE(initial_data, '$.receivedInContentId'), 'Node:', '') AS received_in_node_id,
         REPLACE(SAFE.JSON_VALUE(initial_data, '$.receivedInRootId'), 'Node:', '') AS received_in_root_node_id,

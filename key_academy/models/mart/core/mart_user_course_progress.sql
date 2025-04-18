@@ -30,6 +30,19 @@ course_titles AS (
         title AS course_title
     FROM {{ ref('mart_trees_published_nodes') }}
     WHERE structure_type = 'Root'
+),
+
+certificates AS (
+    SELECT
+        recipient_id AS user_id,
+        ordered_at AS certificate_completed_at,
+        certificate_id,
+        verification_number,
+        received_in_root_node_id AS root_node_id,
+        is_with_honors,
+        performance_in_percent
+    FROM {{ ref('mart_learn_ihk_certificate_orders') }}
+    WHERE certificate_kind = 'Ordered'
 )
 
 SELECT
@@ -37,6 +50,11 @@ SELECT
     cs.root_node_id,
     ct.course_title,
     cs.course_start_at,
+    cr.certificate_completed_at,
+    cr.certificate_id,
+    cr.verification_number,
+    cr.is_with_honors,
+    cr.performance_in_percent,
     cs.total_modules,
     cs.modules_started,
     cs.modules_finished,
@@ -44,3 +62,4 @@ SELECT
     cs.license_id
 FROM course_summary cs
 LEFT JOIN course_titles ct USING (root_node_id)
+LEFT JOIN certificates cr USING (user_id, root_node_id)
