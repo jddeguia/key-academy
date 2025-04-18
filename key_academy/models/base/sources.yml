@@ -32,5 +32,13 @@ sources:
       - name: report_reports
       - name: trees_published_nodes
       - name: tress_unpublished_nodes
+  - name: google_analytics
+    database: intrepid-craft-450709-f9
+    schema: ga4_copy
+    tables:
+      - name: events_*
+      - name: events_intraday_*
+      - name: pseudonymous_users_*
+      - name: users_*
     
 
