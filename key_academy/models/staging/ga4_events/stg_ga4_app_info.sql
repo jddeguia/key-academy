@@ -10,7 +10,7 @@
       'app_info_id',
       'app_firebase_app_id',
       'platform',
-      'user_pseudo_id'
+      'user_id'
     ]
   )
 }}
@@ -43,15 +43,15 @@ SELECT
     app_install_store,
     
     -- Device info
+    device_category,
     device_operating_system,
-    device_os_version,
-    device_brand,
-    device_model,
+    device_operating_system_version,
+    device_browser_version,
     
     -- Traffic source
-    traffic_source,
-    traffic_medium,
-    traffic_campaign_name,
+    traffic_source_name,
+    traffic_source_source,
+    traffic_source_medium,
     
     -- Privacy info
     analytics_storage,
