@@ -1,7 +1,8 @@
 {{ config(materialized = 'table') }}
 
 WITH base_data AS (
-    SELECT *
+    SELECT * EXCEPT (event_date),
+    CAST(event_date AS DATE) as event_date
     FROM {{ ref('base_ga4_events_unflattened') }}
 )
 
