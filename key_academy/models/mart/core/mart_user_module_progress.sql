@@ -40,6 +40,13 @@ module_unlocks AS (
     FROM {{ ref('mart_learn_tree_unlocked_states') }}
 ),
 
+revenue_info AS (
+    SELECT
+        product_title AS course_title,
+        net_price
+    FROM {{ ref('stg_billing_products') }}
+),
+
 certificates AS (
     SELECT
         recipient_id AS user_id,
@@ -51,7 +58,6 @@ certificates AS (
         is_with_honors,
         performance_in_percent
     FROM {{ ref('mart_learn_ihk_certificate_orders') }}
-    WHERE certificate_kind = 'Ordered'
 )
 
 SELECT
@@ -69,11 +75,22 @@ SELECT
     cr.verification_number,
     cr.is_with_honors,
     cr.performance_in_percent,
-    mu.license_id
+    mu.license_id,
+    CASE 
+        WHEN mu.license_id IS NOT NULL THEN ri.net_price 
+        ELSE NULL 
+    END AS net_price
 FROM learn_tree_states ts
-LEFT JOIN module_unlocks mu USING (user_id, root_node_id)
-LEFT JOIN modules m ON ts.module_id = m.module_id
-LEFT JOIN courses c ON ts.root_node_id = c.root_node_id
-LEFT JOIN certificates cr ON cr.user_id = ts.user_id 
+LEFT JOIN module_unlocks mu 
+    ON ts.user_id = mu.user_id 
+    AND ts.root_node_id = mu.root_node_id
+LEFT JOIN modules m 
+    ON ts.module_id = m.module_id
+LEFT JOIN courses c 
+    ON ts.root_node_id = c.root_node_id
+LEFT JOIN certificates cr 
+    ON cr.user_id = ts.user_id 
     AND cr.root_node_id = ts.root_node_id 
     AND cr.module_id = ts.module_id
+LEFT JOIN revenue_info ri 
+    ON c.course_title = ri.course_title
