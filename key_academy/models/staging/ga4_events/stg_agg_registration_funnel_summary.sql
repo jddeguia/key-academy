@@ -14,7 +14,6 @@ summary AS (
     SELECT
         event_date,
         platform,
-        is_active_user,
         SUM(CASE WHEN event_name = 'session_start' THEN 1 ELSE 0 END) AS sessions,
         SUM(CASE WHEN event_name = 'begin_checkout' THEN 1 ELSE 0 END) AS begin_checkout,
         SUM(CASE WHEN event_name = 'add_payment_info' THEN 1 ELSE 0 END) AS payment_details,
