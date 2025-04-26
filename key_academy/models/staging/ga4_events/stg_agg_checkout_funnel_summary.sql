@@ -2,36 +2,35 @@
   config(
     materialized='table',
     partition_by={'field': 'event_date', 'data_type': 'date'},
-    cluster_by=['platform', 'user_type']
+    cluster_by=['platform']
   )
 }}
 
-WITH user_events_with_type AS (
+WITH user_first_events AS (
+  -- Identify first interaction for each user
   SELECT
     user_pseudo_id,
-    event_date,
-    platform,
-    event_name,
-    user_first_touch_timestamp,
-    event_timestamp,
-    is_active_user,
-    -- First calculate user_type at the row level
-    CASE
-      WHEN event_name = 'first_visit' OR DATE(user_first_touch_timestamp) = event_date THEN 'new'
-      WHEN (
-        is_active_user = TRUE AND 
-        LAG(is_active_user) OVER (PARTITION BY user_pseudo_id ORDER BY event_timestamp) = FALSE
-      ) THEN 'returning'
-      WHEN DATE_DIFF(event_date, DATE(user_first_touch_timestamp), DAY) > 1 THEN 'returning'
-      ELSE NULL
-    END AS user_type
+    MIN(event_date) AS first_user_date
   FROM {{ ref('base_ga4_events') }}
-  WHERE event_name IN ('first_visit', 'session_start', 'begin_checkout', 'add_payment_info', 'purchase')
+  GROUP BY user_pseudo_id
 ),
 
-filtered_events AS (
-  SELECT * FROM user_events_with_type
-  WHERE user_type IS NOT NULL
+registration_events AS (
+  SELECT
+    e.user_pseudo_id,
+    e.event_date,
+    e.platform,
+    e.event_name,
+    e.event_timestamp,
+    -- Create a unique session identifier
+    CASE WHEN e.event_name = 'session_start' 
+         THEN CONCAT(e.user_pseudo_id, CAST(e.event_timestamp AS STRING)) 
+         ELSE NULL END AS session_id,
+    -- Mark new users (first interaction on this date)
+    CASE WHEN u.first_user_date = e.event_date THEN 'new' ELSE 'returning' END AS user_type
+  FROM {{ ref('base_ga4_events') }} e
+  JOIN user_first_events u ON e.user_pseudo_id = u.user_pseudo_id
+  WHERE e.event_name IN ('session_start', 'sign_up', 'sign_up_request', 'login')
 ),
 
 user_journeys AS (
@@ -42,10 +41,13 @@ user_journeys AS (
     user_type,
     -- Get the first timestamp for each event type per user per day
     MAX(CASE WHEN event_name = 'session_start' THEN event_timestamp END) AS session_start_time,
-    MAX(CASE WHEN event_name = 'begin_checkout' THEN event_timestamp END) AS begin_checkout_time,
-    MAX(CASE WHEN event_name = 'add_payment_info' THEN event_timestamp END) AS payment_details_time,
-    MAX(CASE WHEN event_name = 'purchase' THEN event_timestamp END) AS purchase_time
-  FROM filtered_events
+    MAX(CASE WHEN event_name = 'sign_up' THEN event_timestamp END) AS sign_up_time,
+    MAX(CASE WHEN event_name = 'sign_up_request' THEN event_timestamp END) AS sign_up_request_time,
+    MAX(CASE WHEN event_name = 'login' THEN event_timestamp END) AS login_time,
+    -- Get any session ID (we'll use this for counting)
+    MAX(session_id) AS session_id
+  FROM registration_events
+  WHERE user_type = 'new'  -- Filter for new users only
   GROUP BY ALL
 ),
 
@@ -53,29 +55,35 @@ funnel_metrics AS (
   SELECT
     event_date,
     platform,
-    user_type,
-    -- Sessions (no sequence requirement)
+    -- Count sessions using SUM CASE WHEN
     SUM(CASE WHEN session_start_time IS NOT NULL THEN 1 ELSE 0 END) AS sessions,
-    -- Begin checkout must happen after session start
+    -- Sign up must happen after session start
     SUM(CASE 
-          WHEN begin_checkout_time IS NOT NULL AND 
-               (session_start_time IS NULL OR begin_checkout_time >= session_start_time)
+          WHEN sign_up_time IS NOT NULL AND 
+               (session_start_time IS NULL OR sign_up_time >= session_start_time)
           THEN 1 ELSE 0 
-        END) AS begin_checkout,
-    -- Payment details must happen after begin checkout
+        END) AS create_account,
+    -- Sign up request must happen after sign up
     SUM(CASE 
-          WHEN payment_details_time IS NOT NULL AND 
-               (begin_checkout_time IS NULL OR payment_details_time >= begin_checkout_time)
+          WHEN sign_up_request_time IS NOT NULL AND 
+               (sign_up_time IS NULL OR sign_up_request_time >= sign_up_time)
           THEN 1 ELSE 0 
-        END) AS payment_details,
-    -- Purchase must happen after payment details
+        END) AS create_password,
+    -- Login must happen after sign up request
     SUM(CASE 
-          WHEN purchase_time IS NOT NULL AND 
-               (payment_details_time IS NULL OR purchase_time >= payment_details_time)
+          WHEN login_time IS NOT NULL AND 
+               (sign_up_request_time IS NULL OR login_time >= sign_up_request_time)
           THEN 1 ELSE 0 
-        END) AS complete_checkout
+        END) AS confirm_email
   FROM user_journeys
   GROUP BY ALL
 )
 
-SELECT * FROM funnel_metrics
+SELECT 
+  event_date,
+  platform,
+  sessions,
+  create_account,
+  create_password,
+  confirm_email
+FROM funnel_metrics
