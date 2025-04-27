@@ -1,10 +1,15 @@
-{{
-  config(
-    materialized='table',
-    partition_by={'field': 'event_date', 'data_type': 'date'},
-    cluster_by=['platform']
-  )
-}}
+
+  
+    
+
+    create or replace table `intrepid-craft-450709-f9`.`key_academy`.`stg_agg_registration_funnel_summary`
+      
+    partition by event_date
+    cluster by platform
+
+    OPTIONS()
+    as (
+      
 
 WITH registration_events AS (
   SELECT
@@ -17,7 +22,7 @@ WITH registration_events AS (
     CASE WHEN event_name = 'session_start' 
          THEN CONCAT(user_pseudo_id, CAST(event_timestamp AS STRING)) 
          ELSE NULL END AS session_id
-  FROM {{ ref('base_ga4_events') }}
+  FROM `intrepid-craft-450709-f9`.`key_academy`.`base_ga4_events`
   WHERE event_name IN ('session_start', 'sign_up', 'sign_up_request', 'login')
 ),
 
@@ -73,3 +78,5 @@ SELECT
   create_password,
   confirm_email
 FROM funnel_metrics
+    );
+  
