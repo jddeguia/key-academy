@@ -1,8 +1,17 @@
 
+  
+    
 
-  create or replace view `intrepid-craft-450709-f9`.`key_academy`.`mart_agg_platform_summary`
-  OPTIONS()
-  as WITH revenue AS (
+    create or replace table `intrepid-craft-450709-f9`.`key_academy`.`mart_agg_platform_summary`
+      
+    
+    
+
+    OPTIONS()
+    as (
+      
+
+WITH revenue AS (
     SELECT
         DATE(created_at) AS date,
         ROUND(SUM(
@@ -71,5 +80,6 @@ summary AS (
 
 SELECT * 
 FROM summary
-ORDER BY date DESC;
-
+ORDER BY date DESC
+    );
+  

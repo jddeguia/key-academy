@@ -1,3 +1,9 @@
+{{
+    config(
+      materialized='table'
+    )
+}}
+
 WITH revenue AS (
     SELECT
         DATE(created_at) AS date,
