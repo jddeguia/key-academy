@@ -1,4 +1,8 @@
-WITH revenue AS (
+
+
+  create or replace view `intrepid-craft-450709-f9`.`key_academy`.`mart_agg_platform_summary`
+  OPTIONS()
+  as WITH revenue AS (
     SELECT
         DATE(created_at) AS date,
         ROUND(SUM(
@@ -8,7 +12,7 @@ WITH revenue AS (
             ELSE 0
         END
     ), 2) AS revenue
-  FROM {{ ref('base_billing_orders') }}
+  FROM `intrepid-craft-450709-f9`.`key_academy`.`base_billing_orders`
   GROUP BY ALL
 ),
 
@@ -18,7 +22,7 @@ courses_progress AS (
         SUM(trials) AS trials,
         SUM(lessons_completed) AS lessons_completed,
         SUM(certificates) AS certificates
-    FROM {{ ref('mart_agg_course_progress') }}
+    FROM `intrepid-craft-450709-f9`.`key_academy`.`mart_agg_course_progress`
     GROUP BY ALL
 ),
 
@@ -26,7 +30,7 @@ licenses_sold AS (
     SELECT
         DATE(module_started_at) AS date,
         SUM(CASE WHEN license_id IS NOT NULL THEN 1 ELSE 0 END) AS licenses_sold
-    FROM {{ ref('mart_user_module_progress') }}
+    FROM `intrepid-craft-450709-f9`.`key_academy`.`mart_user_module_progress`
     GROUP BY ALL
 ),
 
@@ -34,7 +38,7 @@ registrations AS (
     SELECT
         DATE(registered_at) AS date,
         COUNT(*) AS registrations
-    FROM {{ ref('base_auth_users') }}    
+    FROM `intrepid-craft-450709-f9`.`key_academy`.`base_auth_users`    
     GROUP BY ALL
 ),
 
@@ -43,7 +47,7 @@ logins AS (
         event_date AS date,
         SUM(CASE WHEN event_name = 'login' THEN 1 ELSE 0 END) AS logins,
         SUM(CASE WHEN is_active_user IS TRUE THEN 1 ELSE 0 END) AS active_users,    
-    FROM {{ ref('stg_ga4_account_events') }}
+    FROM `intrepid-craft-450709-f9`.`key_academy`.`stg_ga4_account_events`
     GROUP BY ALL
 ),
 
@@ -67,4 +71,5 @@ summary AS (
 
 SELECT * 
 FROM summary
-ORDER BY date DESC
+ORDER BY date DESC;
+
