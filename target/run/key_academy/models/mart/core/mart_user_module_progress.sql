@@ -98,7 +98,6 @@ LEFT JOIN courses c
 LEFT JOIN certificates cr 
     ON cr.user_id = ts.user_id 
     AND cr.root_node_id = ts.root_node_id 
-    AND cr.module_id = ts.module_id
 LEFT JOIN revenue_info ri 
     ON c.course_title = ri.course_title
     );
