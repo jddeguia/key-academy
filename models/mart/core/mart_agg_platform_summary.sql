@@ -59,7 +59,7 @@ summary AS (
         reg.registrations,
         c.trials,
         l.licenses_sold,
-        r.revenue,
+        r.revenue/10 AS revenue,
         log.logins,
         log.active_users,
         c.lessons_completed,
