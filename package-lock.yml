@@ -5,3 +5,6 @@ packages:
     version: 1.1.2
   - package: Saras-Daton/GoogleAds
     version: 1.1.1
+  - package: Saras-Daton/currency_exchange_rates
+    version: 1.0.2
+sha1_hash: 6963ba7262df431592352369bdb1a1bdb9854f35
