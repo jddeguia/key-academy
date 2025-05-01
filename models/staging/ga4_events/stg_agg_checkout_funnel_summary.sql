@@ -6,12 +6,11 @@
   )
 }}
 
-WITH user_first_purchase AS (
+WITH user_first_appearance AS (
   SELECT
     user_id,
-    MIN(created_at) AS first_purchase_date
+    MIN(created_at) AS first_appearance_date
   FROM {{ ref('base_billing_orders') }}
-  WHERE billing_order_status = 'Purchased'
   GROUP BY user_id
 ),
 
@@ -23,12 +22,11 @@ base_with_customer_type AS (
     user_id,
     billing_order_status,
     CASE
-      WHEN billing_order_status = 'Purchased' AND created_at = ufp.first_purchase_date THEN 'New'
-      WHEN billing_order_status = 'Purchased' AND created_at > ufp.first_purchase_date THEN 'Returning'
-      ELSE NULL
+      WHEN created_at = ufa.first_appearance_date THEN 'New'
+      ELSE 'Returning'
     END AS customer_type
   FROM {{ ref('base_billing_orders') }}
-  LEFT JOIN user_first_purchase ufp USING(user_id)
+  LEFT JOIN user_first_appearance ufa USING(user_id)
 )
 
 SELECT
