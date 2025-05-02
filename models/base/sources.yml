@@ -46,5 +46,10 @@ sources:
     schema: google_ads
     tables:
       - name: p_ads_CampaignStats_8244972127
+  - name: bing_ads
+    database: intrepid-craft-450709-f9
+    schema: bing_ads_copy
+    tables:
+      - name: campaign_performance_report_daily
 
 
