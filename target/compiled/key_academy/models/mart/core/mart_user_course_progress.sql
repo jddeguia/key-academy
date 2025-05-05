@@ -17,7 +17,7 @@ course_summary AS (
         MAX(learn_tree_unlocked_kind) AS unlock_kind,
         MAX(license_id) AS license_id
     FROM module_progress
-    GROUP BY user_id, root_node_id
+    GROUP BY ALL
 ),
 
 course_titles AS (

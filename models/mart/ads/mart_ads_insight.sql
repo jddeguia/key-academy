@@ -15,14 +15,20 @@ summary AS (
     SELECT
         date,
         campaign_name,
-        source,
-        platform,
-        SUM(spend) AS spend,
-        SUM(impressions) AS impressions,
-        SUM(clicks) AS clicks,
-        SUM(conversions) AS conversions
+        source AS platform,
+        CASE
+          WHEN LOWER(platform) IN ('mobile', 'mobile_web', 'mobile_app', 'smartphone') THEN 'MOBILE'
+          WHEN LOWER(platform) IN ('desktop', 'computer') THEN 'DESKTOP'
+          WHEN LOWER(platform) IN ('tablet', 'tablet') THEN 'TABLET' 
+          WHEN LOWER(platform) = 'connected_tv' THEN 'TV'
+          WHEN LOWER(platform) IN ('unknown', 'other') THEN 'OTHERS' 
+          ELSE UPPER(platform)
+        END AS device_type,
+        spend,
+        impressions,
+        clicks,
+        conversions
     FROM staging
-    GROUP BY ALL
 )
 
 SELECT * FROM summary
