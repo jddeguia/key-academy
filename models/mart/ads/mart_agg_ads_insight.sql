@@ -30,7 +30,6 @@ post_clicks AS (
     SUM(CASE WHEN event_name IN ('sign_up_request', 'sign_up', 'start_trial') THEN 1 ELSE 0 END) AS registrations,
     SUM(CASE WHEN event_name IN ('begin_checkout') THEN 1 ELSE 0 END) AS begin_checkout,
     SUM(CASE WHEN event_name IN ('purchase') THEN 1 ELSE 0 END) AS purchases,
-    SUM(purchase_revenue_in_usd) AS revenue
   FROM {{ ref('base_ga4_events') }}
   GROUP BY ALL
 ),
@@ -43,7 +42,6 @@ summary AS (
         post.registrations,
         post.begin_checkout,
         post.purchases,
-        post.revenue,
         pre.spend,
         pre.impressions,
         pre.clicks,
