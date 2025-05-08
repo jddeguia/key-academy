@@ -4,7 +4,7 @@
     traffic_source_source
 ) %}
 
-{% set facebook_regex = 'facebook|fb|m\\\\.facebook|lm\\\\.facebook|l\\\\.facebook' %}
+{% set facebook_regex = '(^|_|\\\\.)(facebook|fb|meta|instagram|ig|f8|whatsapp|wa|messenger)|facebooksdk|audienencenetwork|(fb|ig|meta)_|(stories|reels|marketplace|shop|live)(_|$)' %}
 {% set google_regex = 'adwords|googleads|doubleclick|youtube|google' %}
 {% set bing_regex = 'bing' %}
 
