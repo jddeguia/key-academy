@@ -47,8 +47,8 @@ registrations AS (
 logins AS (
     SELECT
         event_date AS date,
-        SUM(CASE WHEN event_name = 'login' THEN 1 ELSE 0 END) AS logins,
-        SUM(CASE WHEN is_active_user IS TRUE THEN 1 ELSE 0 END) AS active_users,    
+        COUNT(DISTINCT CASE WHEN event_name = 'login' THEN event_timestamp END) AS logins,  -- Count distinct logins per timestamp
+        COUNT(DISTINCT CASE WHEN event_name = 'login' AND is_active_user IS TRUE THEN event_timestamp END) AS active_users,  -- Active users distinct by timestamp
     FROM {{ ref('stg_ga4_account_events') }}
     GROUP BY ALL
 ),
@@ -73,4 +73,4 @@ summary AS (
 
 SELECT * 
 FROM summary
-ORDER BY date DESC
+

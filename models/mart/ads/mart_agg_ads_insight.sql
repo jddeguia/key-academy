@@ -18,19 +18,33 @@ WITH pre_clicks AS (
     GROUP BY ALL
 ),
 
-post_clicks AS (
+post_clicks_raw AS (
   SELECT
     event_date,
+    user_pseudo_id,
+    event_timestamp,
     {{ standardize_platform(
         'collected_traffic_source_manual_source',
         'manual_source',
         'traffic_source_source'
     ) }} AS platform,
-    SUM(CASE WHEN event_name IN ('session_start') THEN 1 ELSE 0 END) AS sessions,
-    SUM(CASE WHEN event_name IN ('sign_up_request', 'sign_up', 'start_trial') THEN 1 ELSE 0 END) AS registrations,
-    SUM(CASE WHEN event_name IN ('begin_checkout') THEN 1 ELSE 0 END) AS begin_checkout,
-    SUM(CASE WHEN event_name IN ('purchase') THEN 1 ELSE 0 END) AS purchases,
+    event_name
   FROM {{ ref('base_ga4_events') }}
+  WHERE event_name IN (
+    'session_start', 'sign_up_request', 'sign_up', 'start_trial', 
+    'begin_checkout', 'purchase'
+  )
+),
+
+post_clicks_deduped AS (
+  SELECT
+    event_date,
+    platform,
+    COUNT(DISTINCT CASE WHEN event_name = 'session_start' THEN user_pseudo_id END) AS sessions,
+    COUNT(DISTINCT CASE WHEN event_name IN ('sign_up_request', 'sign_up', 'start_trial') THEN user_pseudo_id END) AS registrations,
+    COUNT(DISTINCT CASE WHEN event_name = 'begin_checkout' THEN user_pseudo_id END) AS begin_checkout,
+    COUNT(DISTINCT CASE WHEN event_name = 'purchase' THEN user_pseudo_id END) AS purchases
+  FROM post_clicks_raw
   GROUP BY ALL
 ),
 
@@ -47,7 +61,7 @@ summary AS (
         pre.clicks,
         pre.conversions
     FROM pre_clicks pre
-    INNER JOIN post_clicks post USING (event_date, platform)
+    LEFT JOIN post_clicks_deduped post USING (event_date, platform)
 )
 
 SELECT * FROM summary

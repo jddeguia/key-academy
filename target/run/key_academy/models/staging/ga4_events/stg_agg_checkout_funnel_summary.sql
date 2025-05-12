@@ -37,10 +37,10 @@ base_with_customer_type AS (
 SELECT
   created_date,
   customer_type,
-  SUM(CASE WHEN billing_order_status = 'HasCart' THEN 1 ELSE 0 END) AS has_cart,
-  SUM(CASE WHEN billing_order_status = 'HasBillingDetails' THEN 1 ELSE 0 END) AS has_billing_details,
-  SUM(CASE WHEN billing_order_status = 'HasPaymentDetails' THEN 1 ELSE 0 END) AS has_payment_details,
-  SUM(CASE WHEN billing_order_status = 'Purchased' THEN 1 ELSE 0 END) AS purchased,
+  SUM(DISTINCT CASE WHEN billing_order_status = 'HasCart' THEN 1 ELSE 0 END) AS has_cart,
+  SUM(DISTINCT CASE WHEN billing_order_status = 'HasBillingDetails' THEN 1 ELSE 0 END) AS has_billing_details,
+  SUM(DISTINCT CASE WHEN billing_order_status = 'HasPaymentDetails' THEN 1 ELSE 0 END) AS has_payment_details,
+  SUM(DISTINCT CASE WHEN billing_order_status = 'Purchased' THEN 1 ELSE 0 END) AS purchased,
 FROM base_with_customer_type
 GROUP BY ALL
     );
