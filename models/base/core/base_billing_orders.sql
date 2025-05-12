@@ -56,6 +56,7 @@ unnest_data AS (
     SAFE.JSON_VALUE(customer_details, '$.postalCode') AS customer_postal_code,
     SAFE.JSON_VALUE(customer_details, '$.salutation') AS customer_salutation,
     SAFE.JSON_VALUE(customer_details, '$.street') AS customer_street,
+    SAFE.JSON_VALUE(customer_details, '$.data.dateOfBirth') AS customer_date_of_birth,
     SAFE.JSON_VALUE(customer_details, '$.data.company') AS customer_company,
     SAFE.JSON_VALUE(customer_details, '$.data.companyDetails') AS company_details,
     SAFE.JSON_VALUE(customer_details, '$.data.companyType') AS company_type,
