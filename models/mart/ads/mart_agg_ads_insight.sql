@@ -47,7 +47,7 @@ summary AS (
         pre.clicks,
         pre.conversions
     FROM pre_clicks pre
-    LEFT JOIN post_clicks post USING (event_date, platform)
+    INNER JOIN post_clicks post USING (event_date, platform)
 )
 
 SELECT * FROM summary
