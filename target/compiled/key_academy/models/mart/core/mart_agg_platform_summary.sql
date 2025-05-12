@@ -61,12 +61,11 @@ summary AS (
         c.lessons_completed,
         c.certificates      
     FROM logins log
-    LEFT JOIN courses_progress c USING (date)
-    LEFT JOIN licenses_sold l USING (date)
-    LEFT JOIN registrations reg USING (date)
-    LEFT JOIN revenue r USING (date)
+    FULL JOIN courses_progress c USING (date)
+    FULL JOIN licenses_sold l USING (date)
+    FULL JOIN registrations reg USING (date)
+    FULL JOIN revenue r USING (date)
 )
 
 SELECT * 
 FROM summary
-ORDER BY date DESC
