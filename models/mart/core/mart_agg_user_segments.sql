@@ -7,7 +7,7 @@
 WITH user_info AS (
     SELECT
         user_id,
-        CONCAT(company_type || ' - ' || business_kind) AS segments
+        CONCAT(business_kind || ' - ' || age_bucket) AS segments
     FROM {{ ref('mart_user_segments') }}
 ),
 
