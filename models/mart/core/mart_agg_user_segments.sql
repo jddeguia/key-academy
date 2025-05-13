@@ -37,7 +37,7 @@ summary AS (
         mod.licenses,
         mod.revenue
     FROM user_module_progress mod
-    LEFT JOIN user_info user USING (user_id)
+    FULL JOIN user_info user USING (user_id)
 )
 
 SELECT * FROM summary
