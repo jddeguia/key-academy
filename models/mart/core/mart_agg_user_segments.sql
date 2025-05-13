@@ -7,7 +7,7 @@
 WITH user_info AS (
     SELECT
         user_id,
-        CONCAT(business_kind || ' - ' || age_bucket) AS segments
+        COALESCE(CONCAT(business_kind || ' - ' || age_bucket), 'Unknown') AS segments
     FROM {{ ref('mart_user_segments') }}
 ),
 
