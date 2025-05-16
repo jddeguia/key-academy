@@ -7,4 +7,3 @@ WITH base_data AS (
 )
 
 SELECT * FROM base_data
-

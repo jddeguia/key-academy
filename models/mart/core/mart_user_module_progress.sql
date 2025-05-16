@@ -7,7 +7,8 @@
 WITH modules AS (
     SELECT 
         node_id AS module_id,
-        title AS module_title
+        title AS module_title,
+        "Module" AS type
     FROM {{ ref('mart_trees_published_nodes') }}
     WHERE structure_type != 'Root'
 ),
@@ -15,7 +16,8 @@ WITH modules AS (
 courses AS (
     SELECT 
         node_id AS root_node_id,
-        title AS course_title
+        title AS course_title,
+        "Course" AS type
     FROM {{ ref('mart_trees_published_nodes') }}
     WHERE structure_type = 'Root'
 ),
