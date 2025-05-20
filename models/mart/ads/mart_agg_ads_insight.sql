@@ -23,11 +23,7 @@ post_clicks_raw AS (
     event_date,
     user_pseudo_id,
     event_timestamp,
-    {{ standardize_platform(
-        'collected_traffic_source_manual_source',
-        'manual_source',
-        'traffic_source_source'
-    ) }} AS platform,
+    {{ standardize_platform('traffic_source_source') }} AS platform,
     event_name
   FROM {{ ref('base_ga4_events') }}
   WHERE event_name IN (
@@ -61,7 +57,7 @@ summary AS (
         pre.clicks,
         pre.conversions
     FROM pre_clicks pre
-    LEFT JOIN post_clicks_deduped post USING (event_date, platform)
+    FULL JOIN post_clicks_deduped post USING (event_date, platform)
 )
 
 SELECT * FROM summary

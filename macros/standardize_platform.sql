@@ -1,45 +1,34 @@
-{% macro standardize_platform(
-    collected_traffic_source_manual_source,
-    manual_source,
-    traffic_source_source
-) %}
+{% macro standardize_platform(traffic_source_source) %}
 
-{% set facebook_regex = '(^|_|\\\\.)(facebook|fb|meta|instagram|ig|f8|whatsapp|wa|messenger)|facebooksdk|audienencenetwork|(fb|ig|meta)_|(stories|reels|marketplace|shop|live)(_|$)' %}
-{% set google_regex = 'adwords|googleads|doubleclick|youtube|google' %}
-{% set bing_regex = 'bing' %}
+{% set platform_patterns = {
+    'FACEBOOK': [
+        '^(?i)(fb|facebook|ig|insta)$',
+        '^(?i)(l|m|lm)\.facebook\.com$',
+        '^(?i)adsmanager\.facebook',
+        '^(?i)facebook\.com$'
+    ],
+    'GOOGLE': [
+        '^(?i)(google|adwords|google-play)$',
+        '^(?i)(youtube\.com|google\.com)$',
+        '^(?i)(m\.youtube\.com|tagassistant\.google)$'
+    ],
+    'BING': [
+        '^(?i)bing$',
+        '^(?i)cn\.bing\.com$'
+    ]
+} %}
 
 CASE
-    -- First prioritize collected_traffic_source_manual_source
-    WHEN {{ collected_traffic_source_manual_source }} IS NOT NULL 
-         AND {{ collected_traffic_source_manual_source }} != '(not set)' 
-         AND {{ collected_traffic_source_manual_source }} != '{{site_source_name}}' THEN
-        CASE
-            WHEN REGEXP_CONTAINS(LOWER({{ collected_traffic_source_manual_source }}), r'{{ facebook_regex }}') THEN 'FACEBOOK'
-            WHEN REGEXP_CONTAINS(LOWER({{ collected_traffic_source_manual_source }}), r'{{ google_regex }}') THEN 'GOOGLE'
-            WHEN REGEXP_CONTAINS(LOWER({{ collected_traffic_source_manual_source }}), r'{{ bing_regex }}') THEN 'BING'
-            ELSE 'OTHER'
-        END
+    WHEN {{ traffic_source_source }} IS NULL 
+         OR {{ traffic_source_source }} IN ('(not set)', '{{source}}', 'Data Not Available', '(direct)', 'data not available') 
+    THEN 'OTHER'
     
-    -- Fallback to manual_source
-    WHEN {{ manual_source }} IS NOT NULL AND {{ manual_source }} != '(not set)' THEN
-        CASE
-            WHEN REGEXP_CONTAINS(LOWER({{ manual_source }}), r'{{ facebook_regex }}') THEN 'FACEBOOK'
-            WHEN REGEXP_CONTAINS(LOWER({{ manual_source }}), r'{{ google_regex }}') THEN 'GOOGLE'
-            WHEN REGEXP_CONTAINS(LOWER({{ manual_source }}), r'{{ bing_regex }}') THEN 'BING'
-            ELSE 'OTHER'
-        END
+    {% for platform, patterns in platform_patterns.items() %}
+    {% for pattern in patterns %}
+    WHEN REGEXP_CONTAINS({{ traffic_source_source }}, r'{{ pattern }}') THEN '{{ platform }}'
+    {% endfor %}
+    {% endfor %}
     
-    -- Final fallback to traffic_source_source
-    WHEN {{ traffic_source_source }} IS NOT NULL AND {{ traffic_source_source }} != '(not set)' 
-         AND {{ traffic_source_source }} != '{{source}}' AND {{ traffic_source_source }} != 'Data Not Available' THEN
-        CASE
-            WHEN REGEXP_CONTAINS(LOWER({{ traffic_source_source }}), r'{{ facebook_regex }}') THEN 'FACEBOOK'
-            WHEN REGEXP_CONTAINS(LOWER({{ traffic_source_source }}), r'{{ google_regex }}') THEN 'GOOGLE'
-            WHEN REGEXP_CONTAINS(LOWER({{ traffic_source_source }}), r'{{ bing_regex }}') THEN 'BING'
-            ELSE 'OTHER'
-        END
-    
-    -- Default for unmatched cases
     ELSE 'OTHER'
 END
 
